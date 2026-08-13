@@ -21,7 +21,7 @@ jobs:
       - run: dotnet build OrderGrid.slnx --configuration Release --no-restore
       - run: dotnet test OrderGrid.slnx --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with: { name: dotnet-test-results, path: TestResults, if-no-files-found: ignore, retention-days: 7 }
   web:
     name: Web console
