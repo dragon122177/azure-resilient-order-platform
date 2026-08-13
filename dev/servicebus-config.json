@@ -1,0 +1,22 @@
+{
+  "UserConfig": {
+    "Namespaces": [
+      {
+        "Name": "sbemulatorns",
+        "Queues": [],
+        "Topics": [
+          {
+            "Name": "order-events",
+            "Properties": { "DefaultMessageTimeToLive": "PT1H", "DuplicateDetectionHistoryTimeWindow": "PT10M", "RequiresDuplicateDetection": true },
+            "Subscriptions": [
+              { "Name": "orchestrator", "Properties": { "DeadLetteringOnMessageExpiration": true, "DefaultMessageTimeToLive": "PT1H", "LockDuration": "PT1M", "MaxDeliveryCount": 10, "RequiresSession": true }, "Rules": [] },
+              { "Name": "analytics", "Properties": { "DeadLetteringOnMessageExpiration": true, "DefaultMessageTimeToLive": "PT1H", "LockDuration": "PT1M", "MaxDeliveryCount": 10, "RequiresSession": true }, "Rules": [] },
+              { "Name": "functions-projection", "Properties": { "DeadLetteringOnMessageExpiration": true, "DefaultMessageTimeToLive": "PT1H", "LockDuration": "PT1M", "MaxDeliveryCount": 10, "RequiresSession": true }, "Rules": [] }
+            ]
+          }
+        ]
+      }
+    ],
+    "Logging": { "Type": "Console" }
+  }
+}

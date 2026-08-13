@@ -1,0 +1,40 @@
+name: ordergrid
+
+services:
+  servicebus-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:2.0.0
+    volumes:
+      - ./dev/servicebus-config.json:/ServiceBus_Emulator/ConfigFiles/Config.json:ro
+    ports: ["5672:5672", "5300:5300"]
+    environment:
+      SQL_SERVER: mssql
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-LocalOnly_Strong_Passw0rd!}
+      ACCEPT_EULA: "Y"
+      EMULATOR_HTTP_PORT: "5300"
+    depends_on:
+      mssql: { condition: service_healthy }
+    networks: [sb-emulator]
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-LocalOnly_Strong_Passw0rd!}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '$$MSSQL_SA_PASSWORD' -C -Q 'SELECT 1' -b -o /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks: [sb-emulator]
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.35.0
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    ports: ["10000:10000", "10001:10001", "10002:10002"]
+    volumes: [azurite-data:/data]
+
+networks:
+  sb-emulator:
+volumes:
+  azurite-data:

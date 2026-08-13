@@ -1,0 +1,15 @@
+{
+  "externalReference": "SMOKE-ORDER-001",
+  "customerEmail": "aiko.tanaka@example.jp",
+  "currency": "JPY",
+  "shippingAddress": {
+    "recipient": "Aiko Tanaka",
+    "line1": "1-2-3 Shibuya",
+    "city": "Tokyo",
+    "postalCode": "150-0002",
+    "countryCode": "JP"
+  },
+  "items": [
+    { "sku": "AZ-100", "name": "Azure Architecture Workbook", "quantity": 1, "unitPrice": 6200 }
+  ]
+}

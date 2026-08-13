@@ -1,0 +1,15 @@
+.git
+.github
+**/bin
+**/obj
+web/node_modules
+web/dist
+TestResults
+coverage
+artifacts
+*.db
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+.env
+.env.*

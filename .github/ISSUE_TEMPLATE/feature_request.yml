@@ -1,0 +1,16 @@
+name: Feature request
+description: Propose an outcome and its trade-offs
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes: { label: Problem, description: Describe the user or operational problem before proposing a solution. }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: Proposed outcome }
+    validations: { required: true }
+  - type: textarea
+    id: tradeoffs
+    attributes: { label: Reliability, security, and cost trade-offs }

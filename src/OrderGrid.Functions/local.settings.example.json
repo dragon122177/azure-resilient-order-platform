@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "ServiceBusConnection": "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local-emulator-key;UseDevelopmentEmulator=true;",
+    "ServiceBusTopic": "order-events",
+    "ServiceBusFunctionsSubscription": "functions-projection",
+    "Infrastructure__DatabaseProvider": "Sqlite",
+    "Infrastructure__DatabaseConnectionString": "Data Source=ordergrid.db",
+    "Infrastructure__InitializeDatabase": "false",
+    "Infrastructure__MessagingMode": "Local",
+    "Infrastructure__StorageMode": "Local"
+  }
+}

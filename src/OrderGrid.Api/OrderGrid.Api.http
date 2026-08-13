@@ -1,0 +1,23 @@
+@host = http://localhost:8080
+
+GET {{host}}/health/ready
+
+###
+POST {{host}}/api/v1/orders
+Content-Type: application/json
+Idempotency-Key: manual-test-0001
+X-Tenant-ID: demo
+
+{
+  "externalReference": "HTTP-001",
+  "customerEmail": "customer@example.com",
+  "currency": "JPY",
+  "shippingAddress": {
+    "recipient": "Aiko Tanaka",
+    "line1": "1-2-3 Shibuya",
+    "city": "Tokyo",
+    "postalCode": "150-0002",
+    "countryCode": "JP"
+  },
+  "items": [{ "sku": "AZ-100", "name": "Azure Architecture Workbook", "quantity": 1, "unitPrice": 6200 }]
+}

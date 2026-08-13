@@ -1,0 +1,56 @@
+name: Deploy to Azure
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        type: choice
+        options: [dev, staging, prod]
+        default: dev
+permissions: { contents: read, id-token: write }
+concurrency: { group: "azure-${{ inputs.environment }}", cancel-in-progress: false }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: "${{ inputs.environment }}"
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sign in with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: "${{ secrets.AZURE_CLIENT_ID }}"
+          tenant-id: "${{ secrets.AZURE_TENANT_ID }}"
+          subscription-id: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      - name: Discover or bootstrap ACR
+        id: registry
+        uses: azure/cli@v2
+        env: { SQL_ADMIN_PASSWORD: "${{ secrets.SQL_ADMIN_PASSWORD }}" }
+        with:
+          inlineScript: |
+            registry=$(az acr list --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" --query "[?tags.application=='ordergrid' && tags.environment=='${{ inputs.environment }}'].name | [0]" -o tsv)
+            if [[ -z "$registry" ]]; then
+              output=$(az deployment group create --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" --template-file infra/main.bicep --parameters environmentName="${{ inputs.environment }}" imageTag=bootstrap bootstrapImage=true sqlAdministratorPassword="$SQL_ADMIN_PASSWORD" --query properties.outputs -o json)
+              registry=$(echo "$output" | jq -r '.registryName.value')
+            fi
+            echo "registry=$registry" >> "$GITHUB_OUTPUT"
+      - run: az acr login --name "${{ steps.registry.outputs.registry }}"
+      - name: Build and push images
+        env: { REGISTRY: "${{ steps.registry.outputs.registry }}" }
+        run: |
+          docker build -f src/OrderGrid.Api/Dockerfile -t "$REGISTRY.azurecr.io/ordergrid-api:${{ github.sha }}" .
+          docker build -f src/OrderGrid.Worker/Dockerfile -t "$REGISTRY.azurecr.io/ordergrid-worker:${{ github.sha }}" .
+          docker push "$REGISTRY.azurecr.io/ordergrid-api:${{ github.sha }}"
+          docker push "$REGISTRY.azurecr.io/ordergrid-worker:${{ github.sha }}"
+      - name: Deploy immutable revision
+        id: infra
+        uses: azure/cli@v2
+        env: { SQL_ADMIN_PASSWORD: "${{ secrets.SQL_ADMIN_PASSWORD }}" }
+        with:
+          inlineScript: |
+            output=$(az deployment group create --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" --template-file infra/main.bicep --parameters environmentName="${{ inputs.environment }}" imageTag="${{ github.sha }}" bootstrapImage=false sqlAdministratorPassword="$SQL_ADMIN_PASSWORD" --query properties.outputs -o json)
+            echo "api_url=$(echo "$output" | jq -r '.apiUrl.value')" >> "$GITHUB_OUTPUT"
+      - name: Smoke test
+        env: { ORDERGRID_BASE_URL: "${{ steps.infra.outputs.api_url }}", ORDERGRID_SMOKE_AUTH_MODE: health-only }
+        run: ./scripts/smoke-test.sh

@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OrderGrid.Api/OrderGrid.Api.csproj" />
+    <Project Path="src/OrderGrid.Application/OrderGrid.Application.csproj" />
+    <Project Path="src/OrderGrid.Domain/OrderGrid.Domain.csproj" />
+    <Project Path="src/OrderGrid.Functions/OrderGrid.Functions.csproj" />
+    <Project Path="src/OrderGrid.Infrastructure/OrderGrid.Infrastructure.csproj" />
+    <Project Path="src/OrderGrid.Worker/OrderGrid.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OrderGrid.Api.Tests/OrderGrid.Api.Tests.csproj" />
+    <Project Path="tests/OrderGrid.Application.Tests/OrderGrid.Application.Tests.csproj" />
+    <Project Path="tests/OrderGrid.Domain.Tests/OrderGrid.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

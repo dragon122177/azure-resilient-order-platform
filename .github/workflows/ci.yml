@@ -1,0 +1,64 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+  workflow_dispatch:
+permissions: { contents: read }
+concurrency: { group: "ci-${{ github.ref }}", cancel-in-progress: true }
+jobs:
+  dotnet:
+    name: .NET build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - run: dotnet restore OrderGrid.slnx
+      - run: dotnet build OrderGrid.slnx --configuration Release --no-restore
+      - run: dotnet test OrderGrid.slnx --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: dotnet-test-results, path: TestResults, if-no-files-found: ignore, retention-days: 7 }
+  web:
+    name: Web console
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+  infrastructure:
+    name: Bicep validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/cli@v2
+        with: { inlineScript: "az bicep build --file infra/main.bicep --outfile /tmp/ordergrid-arm.json" }
+      - uses: azure/cli@v2
+        with:
+          inlineScript: |
+            find infra -name '*.bicep' -print0 | while IFS= read -r -d '' file; do
+              formatted="/tmp/$(basename "$file").formatted.bicep"
+              az bicep format --file "$file" --outfile "$formatted"
+              diff -u "$file" "$formatted"
+            done
+  containers:
+    name: Container builds
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api, dockerfile: src/OrderGrid.Api/Dockerfile }
+          - { name: worker, dockerfile: src/OrderGrid.Worker/Dockerfile }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/build-push-action@v6
+        with: { context: ., file: "${{ matrix.dockerfile }}", push: false, tags: "ordergrid-${{ matrix.name }}:ci" }

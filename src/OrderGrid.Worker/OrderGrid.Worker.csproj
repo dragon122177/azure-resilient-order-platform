@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <ItemGroup>
+    <ProjectReference Include="../OrderGrid.Application/OrderGrid.Application.csproj" />
+    <ProjectReference Include="../OrderGrid.Infrastructure/OrderGrid.Infrastructure.csproj" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+</Project>
