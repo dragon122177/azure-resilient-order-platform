@@ -1,1 +1,0 @@
-# azure-resilient-order-platform
